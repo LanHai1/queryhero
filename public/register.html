@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link href="./lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        .login-panel {
+            margin-top: 100px;
+        }
+        
+        .vCode {
+            height: 36px;
+        }
+        
+        .wrap {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: url('images/bg03.jpg') center bottom no-repeat;
+            overflow: auto;
+        }
+        
+        .navbar-brand {
+            padding: 10px 15px;
+        }
+        
+        .form-horizontal {
+            margin-top: 10px;
+        }
+        
+        .form-horizontal .form-group {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <nav class="navbar  navbar-inverse navbar-static-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#mymenu">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+                    <a class="navbar-brand" href="#"><img src="images/logo.png"></a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="panel panel-default login-panel">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"><b>用户注册</b> <span class="pull-right tsUser" style="display: none;color:red">用户名格式错误</span></h3>
+                        </div>
+                        <div class="panel-body">
+                            <form class="form-horizontal" method="post" action="">
+                                <div class="form-group">
+                                    <label for="userName" class="col-sm-2 control-label">用户名</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" name="username" class="form-control" id="username" placeholder="请输入用户名 (不能输入特殊符号和中文,3至16字符)" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userPass" class="col-sm-2 control-label">密码</label>
+                                    <div class="col-sm-10">
+                                        <input type="password" name="password" class="form-control" id="password" placeholder="请输入密码" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-4">
+                                        <button type="button" class="btn btn-success register">
+                      注册
+                    </button>
+                                        <a href="./login.html" class="btn btn-default">返回</a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">提示框</h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="./lib/bootstrap/js/jquery-1.12.4.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./lib/bootstrap/js/bootstrap.min.js"></script>
+<!-- 导入md5 -->
+<script src="./lib/md5/md5.min.js"></script>
+<script>
+    $(() => {
+        // 错误信息提示
+        function promptUser(msg, callback) {
+            $(".modal-body").html(msg)
+            $('#myModal').modal({
+                keyboard: true
+            })
+            if (callback) callback()
+        }
+
+        // 注册
+        $(".register").on("click", (e) => {
+            e.preventDefault()
+            let user = $("#username");
+            let psd = $("#password");
+
+            // 用户名验证
+            const reg = /^[a-zA-Z0-9_]{3,16}$/
+
+            // 错误
+            if (!reg.test(user.val())) {
+                $(".tsUser").fadeIn()
+                return
+            } else {
+                $(".tsUser").fadeOut()
+            }
+
+            // 为空处理
+            if (user.val().length == 0 || psd.val().length == 0) {
+                promptUser("用户名或密码不能为空")
+                return
+            }
+
+            // 密码加密
+            psd.val((md5(psd.val())))
+            const data = $("form").serialize()
+
+            // ajax请求
+            $.ajax({
+                type: "post",
+                url: "/user/register",
+                data,
+                success: function(response) {
+                    switch (response.code) {
+                        case 200: // 成功
+                            window.location.href = "./login.html"
+                            break;
+                        case 400: // 用户名已被注册
+                            promptUser(response.msg, () => {
+                                user.val("")
+                                psd.val("")
+                            })
+                            break;
+                        case 500: // 服务器错误
+                            promptUser(response.msg)
+                            break;
+                        default:
+                            promptUser("错误错误")
+                            break;
+                    }
+                }
+            });
+        })
+
+    })
+</script>
